@@ -1,0 +1,31 @@
+<section class="container">
+  <div class="img-container" *ngFor="let item of images; let select = index;"
+       [ngClass]="{ 'selected': select == selectedIndex }">
+    <ng-container *ngIf="select == selectedIndex">
+      <div *ngIf="item.isVideo; else image">
+        <app-video [data]="item.data" [stopVideo]="pauseVideo$$" [resumeVideo]="resumeVideo$$"></app-video>
+      </div>
+      <ng-template #image>
+        <app-image [data]="item.data"></app-image>
+      </ng-template>
+    </ng-container>
+  </div>
+</section>
+
+<div class="slider">
+  <div class="slider-control">
+    <button class="slider-control__button" (click)="onPlay()">Play</button>
+    <button class="slider-control__button" (click)="onStop()">Stop</button>
+  </div>
+
+  <div class="slider__button-container" *ngFor="let image of images; let i = index">
+    <button class="slider__button" (click)="select(i)" [ngClass]="{ 'slider__button-selected': i == selectedIndex }">
+    </button>
+  </div>
+
+  <div class="slider-info">
+    <p *ngIf="images[ selectedIndex ]">
+      Slide time <strong>{{ (timer | async) || time }} | {{ images[ selectedIndex ].duration }}</strong>
+    </p>
+  </div>
+</div>
