@@ -38,7 +38,7 @@ img, video {
     width: 10px;
 
     &:hover {
-      cursor: pointer;
+      cursor: not-allowed;
     }
 
     &-selected {
@@ -54,6 +54,10 @@ img, video {
     &__button {
       margin: 22px;
       color: white;
+
+      &:hover {
+        cursor: pointer;
+      }
     }
   }
 

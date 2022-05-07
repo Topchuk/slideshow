@@ -13,14 +13,12 @@ import { PlayerItem, PlaylistItem, PlaylistResponse, PlaylistResponseItem } from
   encapsulation: ViewEncapsulation.None,
 })
 export class PlayerComponent implements OnInit {
-  images: PlayerItem[] = [];
+  playerItems: PlayerItem[] = [];
   selectedIndex = 0;
   transform: number = 100;
   time = 0;
-  // @ts-ignore
-  player: Observable<number>;
-  // @ts-ignore
-  timer: Observable<number>;
+  player!: Observable<number>;
+  timer!: Observable<number>;
   pauseVideo$$: Subject<void> = new Subject<void>();
   resumeVideo$$: Subject<void> = new Subject<void>();
 
@@ -40,19 +38,14 @@ export class PlayerComponent implements OnInit {
         list.push(...playlist.playlistItems);
       });
 
-      this.loadListItemsData(list)
+      if (!list.length) {
+        let defaultItem = {} as PlayerItem;
+        this.playerItems.push(defaultItem);
+        return;
+      }
+
+      this.loadListItemsData(list);
     });
-  }
-
-  select(x: number) {
-    this.downSelected(x);
-    this.selectedIndex = x;
-    this.time = 0;
-  }
-
-  downSelected(i: number) {
-    this.transform = 100 - ( i ) * 50;
-    this.selectedIndex = this.selectedIndex + 1;
   }
 
   ngOnDestroy(): void {
@@ -63,7 +56,7 @@ export class PlayerComponent implements OnInit {
     this.resumeVideo$$.next();
     this.unsubscribe.next();
 
-    this.player = timer(this.images[ this.selectedIndex ].duration * MINUTE - this.time * MINUTE);
+    this.player = timer(this.playerItems[ this.selectedIndex ].duration * MINUTE - this.time * MINUTE);
     this.timer = interval(MINUTE).pipe(
       map(() => {
         this.time += 1;
@@ -75,7 +68,7 @@ export class PlayerComponent implements OnInit {
       takeUntil(this.unsubscribe),
       map(() => {
         this.selectedIndex++;
-        if (this.selectedIndex >= this.images.length) {
+        if (this.selectedIndex >= this.playerItems.length) {
           this.selectedIndex = 0;
         }
         return this.selectedIndex;
@@ -89,18 +82,38 @@ export class PlayerComponent implements OnInit {
 
   onStop(): void {
     this.pauseVideo$$.next();
-
     this.unsubscribe.next();
+  }
+
+  private select(x: number) {
+    this.transform = 100 - ( x ) * 50;
+    this.selectedIndex = x;
+    this.time = 0;
   }
 
   private loadListItemsData(list: PlaylistItem[]): void {
     list.forEach((item: PlaylistItem) => {
-      this.playerService.getMedia(item.creativeKey).pipe(take(1)).subscribe((blobImage: Blob) => {
-        const objectURL = URL.createObjectURL(blobImage);
-        const data = this.domSanitizer.bypassSecurityTrustUrl(objectURL);
-
-        this.images.push({ data, isVideo: item.creativeKey.includes('mp4'), duration: item.duration });
-      });
+      this.loadPlayerItem(item);
     });
+  }
+
+  private loadPlayerItem(item: PlaylistItem): void {
+    this.playerService.getMedia(item.creativeKey).pipe(take(1)).subscribe((blobImage: Blob) => {
+      const playerItem = this.preparePlayerItem(blobImage, item);
+      this.playerItems.push(playerItem);
+    });
+  }
+
+  private preparePlayerItem(blobImage: Blob, item: PlaylistItem): PlayerItem {
+    const { duration, creativeLabel, creativeKey } = item;
+    const objectURL = URL.createObjectURL(blobImage);
+    const data = this.domSanitizer.bypassSecurityTrustUrl(objectURL);
+
+    return {
+      data,
+      isVideo: creativeKey.includes('mp4'),
+      duration,
+      creativeLabel,
+    };
   }
 }
