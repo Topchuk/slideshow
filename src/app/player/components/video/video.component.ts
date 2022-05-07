@@ -3,11 +3,12 @@ import {
   Component,
   ElementRef,
   Input,
+  OnDestroy,
   OnInit,
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-video',
@@ -15,20 +16,26 @@ import { Subject } from 'rxjs';
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class VideoComponent implements OnInit {
+export class VideoComponent implements OnInit, OnDestroy {
   @Input() data: any;
   @Input() stopVideo!: Subject<void>;
   @Input() resumeVideo!: Subject<void>;
 
   @ViewChild('video', { read: ElementRef }) video: ElementRef | undefined;
 
+  private unsubscribe$$: Subject<void> = new Subject<void>();
+
   ngOnInit(): void {
-    this.stopVideo.subscribe(() => {
+    this.stopVideo.pipe(takeUntil(this.unsubscribe$$)).subscribe(() => {
       this.video?.nativeElement.pause();
     });
 
-    this.resumeVideo.subscribe(() => {
+    this.resumeVideo.pipe(takeUntil(this.unsubscribe$$)).subscribe(() => {
       this.video?.nativeElement.play();
     });
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$$.next();
   }
 }
