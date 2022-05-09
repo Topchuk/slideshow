@@ -57,6 +57,20 @@
               ],
               "outputHashing": "all"
             },
+            "local": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/core/config/api.config.ts",
+                  "with": "src/app/core/config/api.local.config.ts"
+                }
+              ],
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            },
             "development": {
               "buildOptimizer": false,
               "optimization": false,
@@ -73,6 +87,9 @@
           "configurations": {
             "production": {
               "browserTarget": "slideshow:build:production"
+            },
+            "local": {
+              "browserTarget": "slideshow:build:local"
             },
             "development": {
               "browserTarget": "slideshow:build:development"

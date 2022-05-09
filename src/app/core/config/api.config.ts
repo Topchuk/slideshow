@@ -1,3 +1,3 @@
 export enum ApiConfig {
-  bff = 'http://localhost:3000/'
+  bff = 'https://thawing-spire-43917.herokuapp.com/'
 }
